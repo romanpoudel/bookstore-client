@@ -1,29 +1,45 @@
 import "../assets/sass/form.scss";
 import { useState } from "react";
 import api from "../api/config";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 const AddBook = () => {
 	const [formData, setFormData] = useState({});
 	const [imageData, setImageData] = useState();
 
 	const handleChange = (e) => {
-		console.log(e.target.value);
 		setFormData({ ...formData, [e.target.name]: e.target.value });
 	};
 	const addBook = async (e) => {
 		e.preventDefault();
-		const response = await api.post(
-			"/book/add",
-			{
-				...formData,
-				image: imageData,
-			},
-			{
-				headers: {
-					"Content-Type": "multipart/form-data",
+		try {
+			const response = await api.post(
+				"/book/add",
+				{
+					...formData,
+					image: imageData,
 				},
+				{
+					headers: {
+						"Content-Type": "multipart/form-data",
+					},
+				}
+			);
+			if (response.data.id) {
+				console.log(response);
+				console.log("success");
+				toast.success("Added new Book");
+				e.target.reset();
+				setFormData({});
+				setImageData({});
+			} else {
+				console.log(response.data.message);
+				toast.error(response.data.message);
 			}
-		);
-		console.log(response);
+		} catch (err) {
+			toast.error(err.message);
+		}
 	};
 	return (
 		<div
@@ -33,6 +49,7 @@ const AddBook = () => {
 				padding: "20px",
 			}}
 		>
+			<ToastContainer />
 			<form
 				style={{ display: "flex", flexDirection: "column" }}
 				onSubmit={addBook}
